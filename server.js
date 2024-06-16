@@ -181,3 +181,31 @@ app.use('/api/carts', cartsRouter);
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+router.put('/:pid', (req, res) => {
+  const products = readProductsFile();
+  const index = products.findIndex(p => p.id === req.params.pid);
+  if (index !== -1) {
+      const updatedProduct = { ...products[index], ...req.body, id: products[index].id };
+      products[index] = updatedProduct;
+      writeProductsFile(products);
+      res.json(updatedProduct);
+  } else {
+      res.status(404).send('Produto não encontrado');
+  }
+});
+
+router.delete('/:pid', (req, res) => {
+  let products = readProductsFile();
+  const productExists = products.some(p => p.id === req.params.pid);
+  if (productExists) {
+      products = products.filter(p => p.id !== req.params.pid);
+      writeProductsFile(products);
+      res.send('Produto deletado');
+  } else {
+      res.status(404).send('Produto não encontrado');
+  }
+});
+const productsRouter = require('./routes/products');
+app.use('/api/products', productsRouter);
+
