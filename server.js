@@ -4,11 +4,10 @@ const fs = require('fs').promises;
 
 const app = express();
 const PORT = 3000;
+const productsFilePath = `${__dirname}/produtos.json`;
 
 app.use(express.json());
 
-const productsRouter = express.Router();
-const productsFilePath = `${__dirname}/produtos.json`;
 
 async function readProductsFile() {
   try {
@@ -20,7 +19,16 @@ async function readProductsFile() {
   }
 }
 
-productsRouter.get('/', async (req, res) => {
+async function writeProductsFile(products) {
+  try {
+    await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
+  } catch (error) {
+    console.error('Erro ao escrever no arquivo de produtos:', error);
+  }
+}
+
+//listar tudo
+app.get('/products', async (req, res) => {
   try {
     let { limit } = req.query;
     limit = limit ? parseInt(limit) : undefined;
@@ -35,7 +43,8 @@ productsRouter.get('/', async (req, res) => {
   }
 });
 
-productsRouter.get('/:pid', async (req, res) => {
+//buscar por id
+app.get('/products/:pid', async (req, res) => {
   const { pid } = req.params;
   try {
     const products = await readProductsFile();
@@ -52,7 +61,8 @@ productsRouter.get('/:pid', async (req, res) => {
   }
 });
 
-productsRouter.post('/', async (req, res) => {
+//add
+app.post('/products', async (req, res) => {
   const {
     title,
     description,
@@ -63,7 +73,7 @@ productsRouter.post('/', async (req, res) => {
   } = req.body;
 
   if (!title || !description || !code || !price || !stock) {
-    return res.status(400).json({ error: 'Todos os campos exceto thumbails são obrigatórios' });
+    return res.status(400).json({ error: 'Todos os campos exceto thumbnails são obrigatórios' });
   }
 
   try {
@@ -78,9 +88,9 @@ productsRouter.post('/', async (req, res) => {
       thumbnails: thumbnails || [],
     };
 
-    const productsList = await readProductsFile();
-    productsList.push(newProduct);
-    await fs.writeFile(productsFilePath, JSON.stringify(productsList, null, 2));
+    const products = await readProductsFile();
+    products.push(newProduct);
+    await writeProductsFile(products);
 
     res.status(201).json(newProduct);
   } catch (error) {
@@ -89,95 +99,48 @@ productsRouter.post('/', async (req, res) => {
   }
 });
 
-app.use('/api/products', productsRouter);
-
-const cartsRouter = express.Router();
-const cartsFilePath = `${__dirname}/carrinho.json`;
-
-async function readCartsFile() {
+//atualizar
+app.put('/products/:pid', async (req, res) => {
   try {
-    const data = await fs.readFile(cartsFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Erro ao ler arquivo de carrinhos:', error);
-    return [];
-  }
-}
+    const { pid } = req.params;
+    const products = await readProductsFile();
+    const index = products.findIndex(p => p.id === pid);
 
-cartsRouter.post('/', async (req, res) => {
-  try {
-    const newCart = {
-      id: uuidv4(),
-      products: [],
-    };
-
-    const carts = await readCartsFile();
-    carts.push(newCart);
-    await fs.writeFile(cartsFilePath, JSON.stringify(carts, null, 2));
-
-    res.status(201).json(newCart);
-  } catch (error) {
-    console.error('Erro ao criar novo carrinho:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
-
-cartsRouter.get('/:cid', async (req, res) => {
-  const { cid } = req.params;
-  try {
-    const carts = await readCartsFile();
-    const cart = carts.find(c => c.id === cid);
-
-    if (!cart) {
-      return res.status(404).json({ error: 'Carrinho não encontrado' });
-    }
-
-    res.json(cart.products);
-  } catch (error) {
-    console.error('Erro ao buscar produtos do carrinho:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
-
-cartsRouter.post('/:cid/product/:pid', async (req, res) => {
-  const { cid, pid } = req.params;
-  const { quantidade } = req.body;
-
-  if (!quantidade || isNaN(parseInt(quantidade))) {
-    return res.status(400).json({ error: 'A quantidade do produto é obrigatória e deve ser um número' });
-  }
-
-  try {
-    const carts = await readCartsFile();
-    const cartIndex = carts.findIndex(c => c.id === cid);
-
-    if (cartIndex === -1) {
-      return res.status(404).json({ error: 'Carrinho não encontrado' });
-    }
-
-    const product = {
-      id: pid,
-      quantidade: parseInt(quantidade),
-    };
-
-    const existingProductIndex = carts[cartIndex].products.findIndex(p => p.id === pid);
-    if (existingProductIndex !== -1) {
-      carts[cartIndex].products[existingProductIndex].quantidade += parseInt(quantidade);
+    if (index !== -1) {
+      const updatedProduct = { ...products[index], ...req.body, id: pid };
+      products[index] = updatedProduct;
+      await writeProductsFile(products);
+      res.json(updatedProduct);
     } else {
-      carts[cartIndex].products.push(product);
+      res.status(404).send('Produto não encontrado');
     }
-
-    await fs.writeFile(cartsFilePath, JSON.stringify(carts, null, 2));
-
-    res.status(200).json({ message: 'Produto adicionado ao carrinho com sucesso' });
   } catch (error) {
-    console.error('Erro ao adicionar produto ao carrinho:', error);
+    console.error('Erro ao atualizar o produto:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
-app.use('/api/carts', cartsRouter);
+//deletar
+app.delete('/products/:pid', async (req, res) => {
+  try {
+    const { pid } = req.params;
+    let products = await readProductsFile();
+    const productExists = products.some(p => p.id === pid);
+
+    if (productExists) {
+      products = products.filter(p => p.id !== pid);
+      await writeProductsFile(products);
+      res.send('Produto deletado');
+    } else {
+      res.status(404).send('Produto não encontrado');
+    }
+  } catch (error) {
+    console.error('Erro ao deletar o produto:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
