@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 const app = express();
 const PORT = 3000;
 const productsFilePath = `${__dirname}/produtos.json`;
-const cartsFilePath = `${__dirname}/carrito.json`;
+const cartsFilePath = `${__dirname}/carrinho.json`;
 
 app.use(express.json());
 
@@ -156,7 +156,7 @@ app.delete('/api/products/:pid', async (req, res) => {
 app.post('/api/cards/', async (req, res) => {
   try {
     const newCart = {
-      id: uuidv4(),
+      cartId: uuidv4(),
       products: [],
     };
 
@@ -171,11 +171,21 @@ app.post('/api/cards/', async (req, res) => {
   }
 });
 
+app.get('/api/cards', async (req, res) => {
+  try {
+    const carts = await readCartsFile();
+    res.json(carts);
+  } catch (error) {
+    console.error('Erro ao listar carrinhos:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 app.get('/api/cards/:cid', async (req, res) => {
   const { cid } = req.params;
   try {
     const carts = await readCartsFile();
-    const cart = carts.find(cart => cart.id === cid);
+    const cart = carts.find(cart => cart.cartId === cid);
 
     if (!cart) {
       return res.status(404).json({ error: 'Carrinho não encontrado' });
@@ -198,7 +208,7 @@ app.post('/api/cards/:cid/product', async (req, res) => {
 
   try {
     let carts = await readCartsFile();
-    const index = carts.findIndex(cart => cart.id === cid);
+    const index = carts.findIndex(cart => cart.cartId === cid);
 
     if (index !== -1) {
       let cart = carts[index];
