@@ -5,9 +5,9 @@ const fs = require('fs').promises;
 const app = express();
 const PORT = 3000;
 const productsFilePath = `${__dirname}/produtos.json`;
+const cartsFilePath = `${__dirname}/carrito.json`;
 
 app.use(express.json());
-
 
 async function readProductsFile() {
   try {
@@ -27,8 +27,25 @@ async function writeProductsFile(products) {
   }
 }
 
-//listar tudo
-app.get('/products', async (req, res) => {
+async function readCartsFile() {
+  try {
+    const data = await fs.readFile(cartsFilePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Erro ao ler arquivo de carrinho:', error);
+    return [];
+  }
+}
+
+async function writeCartsFile(carts) {
+  try {
+    await fs.writeFile(cartsFilePath, JSON.stringify(carts, null, 2));
+  } catch (error) {
+    console.error('Erro ao escrever no arquivo de carrinho:', error);
+  }
+}
+
+app.get('/api/products', async (req, res) => {
   try {
     let { limit } = req.query;
     limit = limit ? parseInt(limit) : undefined;
@@ -43,8 +60,7 @@ app.get('/products', async (req, res) => {
   }
 });
 
-//buscar por id
-app.get('/products/:pid', async (req, res) => {
+app.get('/api/products/:pid', async (req, res) => {
   const { pid } = req.params;
   try {
     const products = await readProductsFile();
@@ -61,8 +77,7 @@ app.get('/products/:pid', async (req, res) => {
   }
 });
 
-//add
-app.post('/products', async (req, res) => {
+app.post('/api/products', async (req, res) => {
   const {
     title,
     description,
@@ -99,8 +114,7 @@ app.post('/products', async (req, res) => {
   }
 });
 
-//atualizar
-app.put('/products/:pid', async (req, res) => {
+app.put('/api/products/:pid', async (req, res) => {
   try {
     const { pid } = req.params;
     const products = await readProductsFile();
@@ -120,8 +134,7 @@ app.put('/products/:pid', async (req, res) => {
   }
 });
 
-//deletar
-app.delete('/products/:pid', async (req, res) => {
+app.delete('/api/products/:pid', async (req, res) => {
   try {
     const { pid } = req.params;
     let products = await readProductsFile();
@@ -140,7 +153,76 @@ app.delete('/products/:pid', async (req, res) => {
   }
 });
 
+app.post('/api/cards/', async (req, res) => {
+  try {
+    const newCart = {
+      id: uuidv4(),
+      products: [],
+    };
+
+    let carts = await readCartsFile();
+    carts.push(newCart);
+    await writeCartsFile(carts);
+
+    res.status(201).json(newCart);
+  } catch (error) {
+    console.error('Erro ao criar o carrinho:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+app.get('/api/cards/:cid', async (req, res) => {
+  const { cid } = req.params;
+  try {
+    const carts = await readCartsFile();
+    const cart = carts.find(cart => cart.id === cid);
+
+    if (!cart) {
+      return res.status(404).json({ error: 'Carrinho não encontrado' });
+    }
+
+    res.json(cart.products);
+  } catch (error) {
+    console.error('Erro ao buscar carrinho com ID:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+app.post('/api/cards/:cid/product', async (req, res) => {
+  const { cid } = req.params;
+  const { productId, quantity } = req.body;
+
+  if (!productId || !quantity || typeof quantity !== 'number' || quantity <= 0) {
+    return res.status(400).json({ error: 'Parâmetros inválidos' });
+  }
+
+  try {
+    let carts = await readCartsFile();
+    const index = carts.findIndex(cart => cart.id === cid);
+
+    if (index !== -1) {
+      let cart = carts[index];
+      let productIndex = cart.products.findIndex(item => item.productId === productId);
+
+      if (productIndex !== -1) {
+        cart.products[productIndex].quantity += quantity;
+      } else {
+        cart.products.push({ productId, quantity });
+      }
+
+      carts[index] = cart;
+      await writeCartsFile(carts);
+
+      res.json(cart.products);
+    } else {
+      res.status(404).send('Carrinho não encontrado');
+    }
+  } catch (error) {
+    console.error('Erro ao adicionar produto ao carrinho:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
-
