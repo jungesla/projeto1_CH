@@ -1,0 +1,41 @@
+[
+  {
+    "id": "c2ae8b4e-776b-485e-ad90-08c4fb8697a0",
+    "title": "pulseira",
+    "description": "Pulseira vermelha",
+    "code": "0012369",
+    "price": 500,
+    "status": true,
+    "stock": 12,
+    "thumbnails": [
+      "https://imagens.com/pulseira.jpg",
+      "https://imagens.com/pulseira.jpg"
+    ]
+  },
+  {
+    "id": "1415a9ac-1c78-475f-967c-d9fc6bfda9ab",
+    "title": "Nova pulseira",
+    "description": "Nova descrição da pulseira",
+    "code": "0012369",
+    "price": 600,
+    "status": true,
+    "stock": 20,
+    "thumbnails": [
+      "https://imagens.com/novapulseira.jpg",
+      "https://imagens.com/novapulseira.jpg"
+    ]
+  },
+  {
+    "id": "03fa400d-885a-47fd-9487-3b58bd380837",
+    "title": "pulseira",
+    "description": "Pulseira vermelha",
+    "code": "0012369",
+    "price": 500,
+    "status": true,
+    "stock": 12,
+    "thumbnails": [
+      "https://imagens.com/pulseira.jpg",
+      "https://imagens.com/pulseira.jpg"
+    ]
+  }
+]
