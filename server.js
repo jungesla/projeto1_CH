@@ -92,7 +92,6 @@ viewsRouter.get('/carts/:cid', async (req, res) => {
   }
 });
 
-// Rota para exibir detalhes do produto
 viewsRouter.get('/products/:pid', async (req, res) => {
   const { pid } = req.params;
   try {
@@ -253,7 +252,7 @@ cartsRouter.post('/', async (req, res) => {
   }
 });
 
-// Rota PUT para atualizar produtos no carrinho
+
 cartsRouter.put('/:cid/products', async (req, res) => {
   const { cid } = req.params;
   const { products } = req.body;
@@ -269,14 +268,14 @@ cartsRouter.put('/:cid/products', async (req, res) => {
       return res.status(404).json({ status: 'erro', message: 'Carrinho não encontrado' });
     }
 
-    // Valida se cada produto na matriz possui uma quantidade válida
+
     for (let product of products) {
       if (!product.productId || typeof product.quantity !== 'number' || product.quantity < 0) {
         return res.status(400).json({ status: 'erro', message: 'Produto ou quantidade inválida' });
       }
     }
 
-    // Atualiza a matriz de produtos
+
     cart.products = products;
     await cart.save();
 
@@ -308,7 +307,6 @@ cartsRouter.put('/:cid/products/:pid', async (req, res) => {
       return res.status(404).json({ status: 'erro', message: 'Produto não encontrado no carrinho' });
     }
 
-    // Atualiza a quantidade do produto
     cart.products[productIndex].quantity = quantity;
     await cart.save();
 
