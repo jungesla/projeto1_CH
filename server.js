@@ -1,18 +1,29 @@
 const express = require('express');
 const path = require('path');
+<<<<<<< HEAD
 const http = require('http');
 const socketIo = require('socket.io');
 const { engine } = require('express-handlebars');
 const Handlebars = require('handlebars');
+=======
+const { v4: uuidv4 } = require('uuid');
+const http = require('http');
+const socketIo = require('socket.io');
+const { engine } = require('express-handlebars');
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
 const connectDB = require('./dao/db');
 const Product = require('./dao/models/Product');
 const Cart = require('./dao/models/Cart');
 const Message = require('./dao/models/Message');
+<<<<<<< HEAD
 const handlebarsLayouts = require('handlebars-layouts');
 const mongoose = require('mongoose');
 
 mongoose.set('strictQuery', true); 
 // config pro Mongoose não apresentar aviso no terminal depois de rodar o start
+=======
+
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
 connectDB();
 
 const app = express();
@@ -21,6 +32,7 @@ const io = socketIo(server);
 const PORT = 8080;
 
 app.use(express.json());
+<<<<<<< HEAD
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.engine('handlebars', engine({
@@ -36,6 +48,11 @@ app.engine('handlebars', engine({
 
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
+=======
+app.set('views', path.join(__dirname, 'views'));
+app.engine('handlebars', engine());
+app.set('view engine', 'handlebars');
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
 
 io.on('connection', (socket) => {
   console.log('Novo cliente conectado');
@@ -46,6 +63,7 @@ io.on('connection', (socket) => {
     io.emit('message', data);
   });
 
+<<<<<<< HEAD
   socket.on('addToCart', async (data) => {
     try {
       const cart = await Cart.findOne({ userId: 'some_user_id' });
@@ -73,6 +91,8 @@ io.on('connection', (socket) => {
     }
   });
 
+=======
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
   socket.on('disconnect', () => {
     console.log('Cliente desconectado');
   });
@@ -135,6 +155,10 @@ viewsRouter.get('/carts/:cid', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
 viewsRouter.get('/products/:pid', async (req, res) => {
   const { pid } = req.params;
   try {
@@ -187,6 +211,7 @@ productsRouter.get('/', async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar produtos:', error);
     res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+<<<<<<< HEAD
   }
 });
 
@@ -214,6 +239,8 @@ productsRouter.post('/', async (req, res) => {
   } catch (error) {
     console.error('Erro ao criar produto:', error);
     res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+=======
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
   }
 });
 
@@ -233,6 +260,7 @@ productsRouter.get('/:pid', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 productsRouter.put('/:pid', async (req, res) => {
   const { pid } = req.params;
   const { title, description, price, thumbnail, code, stock, category, status } = req.body;
@@ -255,12 +283,67 @@ productsRouter.put('/:pid', async (req, res) => {
     res.json({ status: 'sucesso', message: 'Produto atualizado com sucesso', payload: updatedProduct });
   } catch (error) {
     console.error('Erro ao atualizar produto:', error);
+=======
+productsRouter.post('/', async (req, res) => {
+  const {
+    title,
+    description,
+    code,
+    price,
+    stock,
+    category,
+    thumbnails,
+  } = req.body;
+
+  if (!title || !description || !code || !price || !stock || !category) {
+    return res.status(400).json({ status: 'erro', message: 'Todos os campos exceto thumbnails são obrigatórios' });
+  }
+
+  try {
+    const newProduct = new Product({
+      title,
+      description,
+      code,
+      price,
+      status: req.body.status ?? true,
+      stock,
+      category,
+      thumbnails: thumbnails || [],
+    });
+
+    const savedProduct = await newProduct.save();
+    res.status(201).json({ status: 'sucesso', payload: savedProduct });
+  } catch (error) {
+    console.error('Erro ao adicionar o produto:', error);
+    res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+  }
+});
+
+productsRouter.put('/:pid', async (req, res) => {
+  const { pid } = req.params;
+  const updates = req.body;
+
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(pid, updates, { new: true });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ status: 'erro', message: 'Produto não encontrado' });
+    }
+
+    res.json({ status: 'sucesso', payload: updatedProduct });
+  } catch (error) {
+    console.error('Erro ao atualizar o produto:', error);
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
     res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
   }
 });
 
 productsRouter.delete('/:pid', async (req, res) => {
   const { pid } = req.params;
+<<<<<<< HEAD
+=======
+
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
   try {
     const deletedProduct = await Product.findByIdAndDelete(pid);
 
@@ -268,15 +351,142 @@ productsRouter.delete('/:pid', async (req, res) => {
       return res.status(404).json({ status: 'erro', message: 'Produto não encontrado' });
     }
 
+<<<<<<< HEAD
     res.json({ status: 'sucesso', message: 'Produto excluído com sucesso' });
   } catch (error) {
     console.error('Erro ao excluir produto:', error);
+=======
+    res.status(204).send();
+  } catch (error) {
+    console.error('Erro ao deletar o produto:', error);
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
     res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
   }
 });
 
 app.use('/api/products', productsRouter);
 
+<<<<<<< HEAD
+=======
+const cartsRouter = express.Router();
+
+cartsRouter.post('/', async (req, res) => {
+  try {
+    const newCart = new Cart({
+      userId: uuidv4(),
+      products: [],
+    });
+
+    const savedCart = await newCart.save();
+    res.status(201).json({ status: 'sucesso', payload: savedCart });
+  } catch (error) {
+    console.error('Erro ao criar novo carrinho:', error);
+    res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+  }
+});
+
+
+cartsRouter.put('/:cid/products', async (req, res) => {
+  const { cid } = req.params;
+  const { products } = req.body;
+
+  if (!products || !Array.isArray(products)) {
+    return res.status(400).json({ status: 'erro', message: 'Produtos inválidos' });
+  }
+
+  try {
+    const cart = await Cart.findById(cid);
+
+    if (!cart) {
+      return res.status(404).json({ status: 'erro', message: 'Carrinho não encontrado' });
+    }
+
+
+    for (let product of products) {
+      if (!product.productId || typeof product.quantity !== 'number' || product.quantity < 0) {
+        return res.status(400).json({ status: 'erro', message: 'Produto ou quantidade inválida' });
+      }
+    }
+
+
+    cart.products = products;
+    await cart.save();
+
+    res.json({ status: 'sucesso', message: 'Carrinho atualizado com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao atualizar o carrinho:', error);
+    res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+  }
+});
+
+cartsRouter.put('/:cid/products/:pid', async (req, res) => {
+  const { cid, pid } = req.params;
+  const { quantity } = req.body;
+
+  if (typeof quantity !== 'number' || quantity < 0) {
+    return res.status(400).json({ status: 'erro', message: 'Quantidade inválida' });
+  }
+
+  try {
+    const cart = await Cart.findById(cid);
+
+    if (!cart) {
+      return res.status(404).json({ status: 'erro', message: 'Carrinho não encontrado' });
+    }
+
+    const productIndex = cart.products.findIndex(item => item.productId.toString() === pid);
+
+    if (productIndex === -1) {
+      return res.status(404).json({ status: 'erro', message: 'Produto não encontrado no carrinho' });
+    }
+
+
+    cart.products[productIndex].quantity = quantity;
+    await cart.save();
+
+    res.json({ status: 'sucesso', message: 'Quantidade do produto atualizada com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao atualizar a quantidade do produto no carrinho:', error);
+    res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+  }
+});
+
+cartsRouter.get('/:cid', async (req, res) => {
+  const { cid } = req.params;
+  try {
+    const cart = await Cart.findById(cid).populate('products.productId');
+
+    if (!cart) {
+      return res.status(404).json({ status: 'erro', message: 'Carrinho não encontrado' });
+    }
+
+    res.json({ status: 'sucesso', payload: cart });
+  } catch (error) {
+    console.error('Erro ao buscar carrinho:', error);
+    res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+  }
+});
+
+cartsRouter.delete('/:cid', async (req, res) => {
+  const { cid } = req.params;
+
+  try {
+    const deletedCart = await Cart.findByIdAndDelete(cid);
+
+    if (!deletedCart) {
+      return res.status(404).json({ status: 'erro', message: 'Carrinho não encontrado' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Erro ao deletar o carrinho:', error);
+    res.status(500).json({ status: 'erro', message: 'Erro interno do servidor' });
+  }
+});
+
+app.use('/api/carts', cartsRouter);
+
+>>>>>>> c3fb5e5e7b6494f44952b7ef71d080d08ab90d94
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
