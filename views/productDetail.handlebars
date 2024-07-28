@@ -1,0 +1,15 @@
+<h1>{{product.title}}</h1>
+<p>{{product.description}}</p>
+<p>Preço: {{product.price}}</p>
+<p>Categoria: {{product.category}}</p>
+<p>Status: {{product.status}}</p>
+<button onclick="addToCart('{{product._id}}')">Adicionar ao carrinho</button>
+<script>
+    function addToCart(productId) {
+        const socket = io();
+        socket.emit('addToCart', { productId: productId, quantity: 1 });
+        socket.on('cartUpdated', (data) => {
+            alert(data.message);
+        });
+    }
+</script>
