@@ -1,11 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    {{{body}}}
+    <header>
+        <h1>Bem-vindo ao nosso site</h1>
+        {{#if user}}
+            <a href="/logout" class="btn btn-primary" onclick="logout()">Logout</a>
+        {{else}}
+            <a href="/login" class="btn btn-primary">Login</a>
+        {{/if}}
+    </header>
+    <main>
+        {{{body}}}
+    </main>
+    <footer>
+        <p>&copy;CH</p>
+    </footer>
+    <script>
+        function logout() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'same-origin',
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            });
+        }
+    </script>
 </body>
 </html>

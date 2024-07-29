@@ -1,28 +1,56 @@
-<h1>Produtos</h1>
-<ul>
-    {{#each products}}
-    <li>
-        <h2>{{this.title}}</h2>
-        <p>{{this.description}}</p>
-        <p>Preço: {{this.price}}</p>
-        <button onclick="addToCart('{{this._id}}')">Adicionar ao carrinho</button>
-        <a href="/views/products/{{this._id}}">Ver detalhes</a>
-    </li>
-    {{/each}}
-</ul>
-<p>Página {{page}} de {{totalPages}}</p>
-{{#if hasPrevPage}}
-<a href="?page={{prevPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Página Anterior</a>
-{{/if}}
-{{#if hasNextPage}}
-<a href="?page={{nextPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Próxima Página</a>
-{{/if}}
-<script>
-    function addToCart(productId) {
-        const socket = io();
-        socket.emit('addToCart', { productId: productId, quantity: 1 });
-        socket.on('cartUpdated', (data) => {
-            alert(data.message);
-        });
-    }
-</script>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Produtos</h1>
+        <p>Bem-vindo, {{user.email}}! ({{user.role}})</p>
+        <button onclick="logout()">Logout</button>
+    </header>
+    <main>
+        <ul>
+            {{#each products}}
+            <li>
+                <h2>{{this.title}}</h2>
+                <p>{{this.description}}</p>
+                <p>Preço: {{this.price}}</p>
+                <button onclick="addToCart('{{this._id}}')">Adicionar ao carrinho</button>
+                <a href="/views/products/{{this._id}}">Ver detalhes</a>
+            </li>
+            {{/each}}
+        </ul>
+        <p>Página {{page}} de {{totalPages}}</p>
+        {{#if hasPrevPage}}
+        <a href="?page={{prevPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Página Anterior</a>
+        {{/if}}
+        {{#if hasNextPage}}
+        <a href="?page={{nextPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Próxima Página</a>
+        {{/if}}
+    </main>
+    <script>
+        function addToCart(productId) {
+            const socket = io();
+            socket.emit('addToCart', { productId: productId, quantity: 1 });
+            socket.on('cartUpdated', (data) => {
+                alert(data.message);
+            });
+        }
+
+        function logout() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'same-origin',
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
